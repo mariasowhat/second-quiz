@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Игра «Найди фейк» — Окружающий мир, 4 класс</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --blue: #245eb8;
+      --blue-dark: #173c76;
+      --sky: #eaf5ff;
+      --green: #2fa866;
+      --green-light: #e6f8ed;
+      --red: #dc4b4b;
+      --red-light: #fff0f0;
+      --gold: #f5a524;
+      --ink: #20334d;
+      --muted: #6e8098;
+      --border: #d7e5f5;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      color: var(--ink);
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      background:
+        radial-gradient(circle at 15% 15%, rgba(255, 211, 94, .42), transparent 19%),
+        radial-gradient(circle at 90% 80%, rgba(100, 183, 255, .24), transparent 24%),
+        linear-gradient(135deg, #dcefff 0%, #f9fcff 48%, #eef9f1 100%);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 760px;
+      position: relative;
+      overflow: hidden;
+      padding: 34px;
+      border: 4px solid #fff;
+      border-radius: 30px;
+      background: rgba(255, 255, 255, .97);
+      box-shadow: 0 22px 60px rgba(31, 91, 173, .20);
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 11px;
+      background: linear-gradient(90deg, #66c5ff 0%, #4b87de 48%, #62c890 100%);
+    }
+
+    .screen {
+      display: none;
+      animation: show .35s ease;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes show {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Стартовый экран */
+
+    .start-screen {
+      text-align: center;
+    }
+
+    .detective {
+      width: 112px;
+      height: 112px;
+      display: grid;
+      place-items: center;
+      margin: 2px auto 13px;
+      font-size: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #eaf6ff, #d9ebff);
+      box-shadow: inset 0 0 0 7px #fff, 0 10px 20px rgba(38, 93, 175, .14);
+      animation: float 2.5s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(-3deg); }
+      50% { transform: translateY(-8px) rotate(3deg); }
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      color: var(--blue-dark);
+      font-size: clamp(25px, 5vw, 36px);
+      line-height: 1.15;
+    }
+
+    .subtitle {
+      margin-bottom: 17px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.55;
+    }
+
+    .intro-box {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .intro-item {
+      padding: 14px 9px;
+      color: var(--blue-dark);
+      font-size: 14px;
+      font-weight: 700;
+      border: 2px solid #d8eafd;
+      border-radius: 17px;
+      background: linear-gradient(145deg, #f9fcff, #edf6ff);
+    }
+
+    .intro-item span {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 24px;
+    }
+
+    .rules {
+      margin-bottom: 22px;
+      padding: 15px 18px;
+      text-align: left;
+      color: #435b77;
+      font-size: 15px;
+      line-height: 1.6;
+      border-left: 6px solid var(--gold);
+      border-radius: 15px;
+      background: #fff9e9;
+    }
+
+    .rules b {
+      color: #a76600;
+    }
+
+    /* Кнопки */
+
+    .main-btn,
+    .answer-btn,
+    .next-btn,
+    .restart-btn {
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+    }
+
+    .main-btn,
+    .restart-btn {
+      width: 100%;
+      padding: 16px 20px;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 900;
+      border-radius: 17px;
+      background: linear-gradient(135deg, #317bd4, #174a92);
+      box-shadow: 0 8px 0 #11396f, 0 14px 22px rgba(28, 83, 158, .25);
+    }
+
+    .main-btn:hover,
+    .restart-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 11px 0 #11396f, 0 18px 26px rgba(28, 83, 158, .30);
+    }
+
+    .main-btn:active,
+    .restart-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 4px 0 #11396f;
+    }
+
+    /* Верхняя панель */
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 13px;
+    }
+
+    .stat {
+      padding: 9px 11px;
+      color: var(--blue-dark);
+      font-size: 14px;
+      font-weight: 900;
+      white-space: nowrap;
+      border: 2px solid #d4e8fc;
+      border-radius: 13px;
+      background: #f1f8ff;
+    }
+
+    .stat.score {
+      color: #986100;
+      text-align: center;
+      border-color: #ffe0a2;
+      background: #fff7df;
+    }
+
+    .stat.total-time {
+      text-align: right;
+    }
+
+    .progress-wrap {
+      margin-bottom: 18px;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .progress {
+      height: 12px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: #e7eff8;
+    }
+
+    .progress-bar {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #2c75ca, #65b6ec, #53ba7f);
+      transition: width .35s ease;
+    }
+
+    .topic {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
+      padding: 6px 12px;
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 900;
+      border: 1px solid #c9e1f8;
+      border-radius: 99px;
+      background: #eaf5ff;
+    }
+
+    /* Вопрос */
+
+    .question-card {
+      min-height: 115px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 17px;
+      padding: 18px;
+      border: 2px solid #dceafa;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #fbfdff, #eff7ff);
+    }
+
+    .question-icon {
+      flex: 0 0 65px;
+      width: 65px;
+      height: 65px;
+      display: grid;
+      place-items: center;
+      font-size: 38px;
+      border-radius: 19px;
+      background: #fff;
+      box-shadow: 0 5px 12px rgba(33, 92, 170, .12);
+    }
+
+    .question {
+      color: var(--blue-dark);
+      font-size: clamp(20px, 3.5vw, 25px);
+      font-weight: 900;
+      line-height: 1.3;
+    }
+
+    .question-timer-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .question-timer {
+      min-width: 74px;
+      padding: 8px 11px;
+      color: #9b6500;
+      font-size: 14px;
+      font-weight: 900;
+      text-align: center;
+      border-radius: 12px;
+      background: #fff6dc;
+    }
+
+    .question-timer.danger {
+      color: #b92b2b;
+      background: #fff0ef;
+      animation: pulse .9s infinite;
+    }
+
+    @keyframes pulse {
+      50% {
+        transform: scale(1.04);
+        opacity: .65;
+      }
+    }
+
+    .question-time-line {
+      width: 100%;
+      height: 9px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: #eef1f6;
+    }
+
+    .question-time-line div {
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #f5bd2e, #ef8d35);
+      transition: width 1s linear;
+    }
+
+    /* Ответы */
+
+    .btns {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .answer-btn {
+      min-height: 95px;
+      padding: 13px 10px;
+      color: var(--blue-dark);
+      font-size: 16px;
+      font-weight: 900;
+      border: 2px solid #d5e5f5;
+      border-radius: 18px;
+      background: linear-gradient(145deg, #fff, #eff7ff);
+    }
+
+    .answer-btn:hover:not(:disabled) {
+      transform: translateY(-4px);
+      border-color: #5897d9;
+      box-shadow: 0 9px 17px rgba(30, 97, 181, .14);
+    }
+
+    .answer-btn:disabled {
+      cursor: default;
+    }
+
+    .answer-icon {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 27px;
+    }
+
+    .answer-btn.correct {
+      color: #1d7442;
+      border-color: #51ba7c;
+      background: var(--green-light);
+    }
+
+    .answer-btn.wrong {
+      color: #a62e2e;
+      border-color: #ed7777;
+      background: var(--red-light);
+    }
+
+    /* Объяснение */
+
+    .feedback {
+      display: none;
+      margin-top: 17px;
+      padding: 15px 17px;
+      color: #3a5874;
+      font-size: 15px;
+      line-height: 1.55;
+      border-radius: 17px;
+      background: #f4f9ff;
+    }
+
+    .feedback.show {
+      display: block;
+      animation: show .3s ease;
+    }
+
+    .feedback strong {
+      color: var(--blue-dark);
+    }
+
+    .feedback.ok {
+      border-left: 6px solid var(--green);
+      background: #ebf9ef;
+    }
+
+    .feedback.bad {
+      border-left: 6px solid var(--red);
+      background: #fff2f1;
+    }
+
+    .next-btn {
+      display: none;
+      width: 100%;
+      margin-top: 16px;
+      padding: 14px;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 900;
+      border-radius: 15px;
+      background: linear-gradient(135deg, #49ae75, #247d50);
+      box-shadow: 0 6px 0 #1d643f;
+    }
+
+    .next-btn.show {
+      display: block;
+    }
+
+    .next-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .next-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 3px 0 #1d643f;
+    }
+
+    /* Результаты */
+
+    .result-screen {
+      text-align: center;
+    }
+
+    .result-emoji {
+      font-size: 78px;
+      animation: float 2.5s ease-in-out infinite;
+    }
+
+    .result-title {
+      margin: 8px 0;
+      color: var(--blue-dark);
+      font-size: clamp(27px, 5vw, 34px);
+    }
+
+    .result-text {
+      max-width: 560px;
+      margin: 0 auto 20px;
+      color: #526982;
+      font-size: 16px;
+      line-height: 1.55;
+    }
+
+    .result-boxes {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 11px;
+      margin-bottom: 18px;
+    }
+
+    .result-box {
+      padding: 16px 8px;
+      border: 2px solid #d6e7f9;
+      border-radius: 18px;
+      background: linear-gradient(145deg, #f9fcff, #eaf5ff);
+    }
+
+    .result-box:nth-child(2) {
+      border-color: #ffe3a9;
+      background: #fff9e9;
+    }
+
+    .result-box:nth-child(3) {
+      border-color: #d5efd9;
+      background: #effaf2;
+    }
+
+    .result-number {
+      color: var(--blue);
+      font-size: 28px;
+      font-weight: 900;
+    }
+
+    .result-box:nth-child(2) .result-number {
+      color: #a66a00;
+    }
+
+    .result-box:nth-child(3) .result-number {
+      color: #237d4b;
+    }
+
+    .result-caption {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .rank {
+      margin-bottom: 20px;
+      padding: 15px;
+      color: var(--blue-dark);
+      font-size: 18px;
+      font-weight: 900;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #eaf5ff, #f6fbff);
+    }
+
+    @media (max-width: 580px) {
+      body {
+        align-items: flex-start;
+        padding: 9px;
+      }
+
+      .card {
+        min-height: 100vh;
+        padding: 29px 18px 35px;
+        border-radius: 23px;
+      }
+
+      .intro-box {
+        gap: 7px;
+      }
+
+      .intro-item {
+        padding: 11px 5px;
+        font-size: 12px;
+      }
+
+      .topbar {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .stat.total-time {
+        grid-column: 1 / -1;
+        text-align: center;
+      }
+
+      .btns {
+        grid-template-columns: 1fr;
+      }
+
+      .answer-btn {
+        min-height: 65px;
+      }
+
+      .answer-icon {
+        display: inline;
+        margin-right: 7px;
+      }
+
+      .question-card {
+        gap: 11px;
+        padding: 14px;
+      }
+
+      .question-icon {
+        flex-basis: 53px;
+        width: 53px;
+        height: 53px;
+        font-size: 30px;
+      }
+
+      .result-boxes {
+        gap: 7px;
+      }
+
+      .result-number {
+        font-size: 23px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="card">
+
+    <!-- СТАРТ -->
+    <section class="screen start-screen active" id="start-screen">
+      <div class="detective">🕵️</div>
+
+      <h1>Игра «Найди фейк»</h1>
+
+      <p class="subtitle">
+        <b>Окружающий мир · 4 класс</b><br>
+        Проверь утверждения, найди неточности и стань настоящим детективом знаний!
+      </p>
+
+      <div class="intro-box">
+        <div class="intro-item">
+          <span>🧠</span>
+          11 вопросов
+        </div>
+        <div class="intro-item">
+          <span>⭐</span>
+          10 очков за ответ
+        </div>
+        <div class="intro-item">
+          <span>⏱️</span>
+          30 секунд на вопрос
+        </div>
+      </div>
+
+      <div class="rules">
+        <b>Как играть:</b> прочитайте утверждение и выберите вариант: «Правда», «Фейк» или «Полуправда». После ответа появится объяснение. Вопросы и варианты перемешиваются при каждом новом запуске.
+      </div>
+
+      <button class="main-btn" onclick="startGame()">Начать расследование 🔍</button>
+    </section>
+
+    <!-- ИГРА -->
+    <section class="screen" id="game-screen">
+      <div class="topbar">
+        <div class="stat">⭐ Очки: <span id="score">0</span></div>
+        <div class="stat score">🕵️ <span id="counter">1</span> / <span id="total">11</span></div>
+        <div class="stat total-time">⏱️ Общее: <span id="total-time">15:00</span></div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>Ход расследования</span>
+          <span id="progress-text">0%</span>
+        </div>
+        <div class="progress">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+      </div>
+
+      <div class="topic" id="topic">🌍 Окружающий мир</div>
+
+      <div class="question-card">
+        <div class="question-icon" id="question-icon">🌍</div>
+        <div class="question" id="question"></div>
+      </div>
+
+      <div class="question-timer-wrap">
+        <div class="question-timer" id="question-timer">⏳ 30 сек.</div>
+        <div class="question-time-line">
+          <div id="question-time-bar"></div>
+        </div>
+      </div>
+
+      <div class="btns" id="buttons">
+        <button class="answer-btn" data-choice="Правда" onclick="answer(this.dataset.choice)">
+          <span class="answer-icon">✅</span>Правда
+        </button>
+
+        <button class="answer-btn" data-choice="Фейк" onclick="answer(this.dataset.choice)">
+          <span class="answer-icon">🚩</span>Фейк
+        </button>
+
+        <button class="answer-btn" data-choice="Полуправда" onclick="answer(this.dataset.choice)">
+          <span class="answer-icon">🌓</span>Полуправда
+        </button>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+
+      <button class="next-btn" id="next-btn" onclick="nextQuestion()">
+        Следующий вопрос →
+      </button>
+    </section>
+
+    <!-- РЕЗУЛЬТАТ -->
+    <section class="screen result-screen" id="result-screen">
+      <div class="result-emoji" id="result-emoji">🏆</div>
+      <h2 class="result-title" id="result-title">Расследование завершено!</h2>
+      <p class="result-text" id="result-text"></p>
+
+      <div class="result-boxes">
+        <div class="result-box">
+          <div class="result-number" id="final-score">0</div>
+          <div class="result-caption">очков</div>
+        </div>
+
+        <div class="result-box">
+          <div class="result-number" id="correct-count">0</div>
+          <div class="result-caption">верных ответов</div>
+        </div>
+
+        <div class="result-box">
+          <div class="result-number" id="final-time">0:00</div>
+          <div class="result-caption">время игры</div>
+        </div>
+      </div>
+
+      <div class="rank" id="rank"></div>
+
+      <button class="restart-btn" onclick="startGame()">Пройти ещё раз 🔄</button>
+    </section>
+
+  </main>
+
+  <script>
+    const ORIGINAL_CARDS = [
+      {
+        topic: "💧 Вода и её свойства",
+        icon: "🧊",
+        text: "Вода при замерзании расширяется.",
+        answer: "Правда",
+        explain: "Вода действительно расширяется при замерзании. Поэтому лёд легче воды и может плавать на её поверхности."
+      },
+      {
+        topic: "🐋 Животные",
+        icon: "🐋",
+        text: "Кит — это рыба.",
+        answer: "Фейк",
+        explain: "Кит — не рыба, а млекопитающее. Он дышит воздухом с помощью лёгких и кормит детёнышей молоком."
+      },
+      {
+        topic: "🌌 Космос",
+        icon: "🌙",
+        text: "Луна — это звезда.",
+        answer: "Фейк",
+        explain: "Луна не излучает собственный свет, а отражает солнечный. Это естественный спутник Земли."
+      },
+      {
+        topic: "☀️ Солнечная система",
+        icon: "🪐",
+        text: "Солнце — это звезда, и оно вращается вокруг Земли.",
+        answer: "Полуправда",
+        explain: "Солнце — действительно звезда. Но неверно, что оно вращается вокруг Земли: Земля движется вокруг Солнца."
+      },
+      {
+        topic: "🐦 Птицы",
+        icon: "🕊️",
+        text: "Перелётные птицы осенью улетают в тёплые края.",
+        answer: "Правда",
+        explain: "Осенью многие птицы улетают туда, где легче найти корм и пережить холодное время года."
+      },
+      {
+        topic: "🐦 Птицы",
+        icon: "🐧",
+        text: "Все птицы умеют летать.",
+        answer: "Фейк",
+        explain: "Не все птицы летают. Например, пингвины хорошо плавают, а страусы быстро бегают."
+      },
+      {
+        topic: "🌍 Земля",
+        icon: "🌎",
+        text: "Смена дня и ночи происходит из-за вращения Земли вокруг своей оси.",
+        answer: "Правда",
+        explain: "Земля вращается вокруг своей оси. Та её часть, которая обращена к Солнцу, освещена — там день."
+      },
+      {
+        topic: "🪐 Солнечная система",
+        icon: "🟠",
+        text: "Земля — самая большая планета Солнечной системы.",
+        answer: "Фейк",
+        explain: "Самая большая планета Солнечной системы — Юпитер. Земля значительно меньше."
+      },
+      {
+        topic: "🕷️ Животные",
+        icon: "🕷️",
+        text: "У паука шесть ног.",
+        answer: "Фейк",
+        explain: "У пауков восемь ног. Шесть ног бывает у насекомых: например, у бабочек, жуков и муравьёв."
+      },
+      {
+        topic: "📅 Время и календарь",
+        icon: "📆",
+        text: "В году 12 месяцев, и все они длятся по 30 дней.",
+        answer: "Фейк",
+        explain: "В году действительно 12 месяцев, но их длительность разная: от 28 до 31 дня."
+      },
+      {
+        topic: "🦴 Организм человека",
+        icon: "🦴",
+        text: "В скелете взрослого человека около 206 костей.",
+        answer: "Правда",
+        explain: "У взрослого человека обычно около 206 костей. Они поддерживают тело и защищают внутренние органы."
+      }
+    ];
+
+    const ANSWERS = [
+      { name: "Правда", icon: "✅" },
+      { name: "Фейк", icon: "🚩" },
+      { name: "Полуправда", icon: "🌓" }
+    ];
+
+    const MAX_TOTAL_TIME = 15 * 60;
+    const MAX_QUESTION_TIME = 30;
+
+    let cards = [];
+    let index = 0;
+    let score = 0;
+    let correct = 0;
+    let answered = false;
+    let totalTimeLeft = MAX_TOTAL_TIME;
+    let questionTimeLeft = MAX_QUESTION_TIME;
+    let totalTimerId = null;
+    let questionTimerId = null;
+    let audioContext = null;
+
+    const $ = (id) => document.getElementById(id);
+
+    function shuffle(array) {
+      const newArray = [...array];
+
+      for (let i = newArray.length - 1; i > 0; i--) {
+        const randomIndex = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[randomIndex]] = [newArray[randomIndex], newArray[i]];
+      }
+
+      return newArray;
+    }
+
+    function showScreen(id) {
+      document.querySelectorAll(".screen").forEach((screen) => {
+        screen.classList.remove("active");
+      });
+
+      $(id).classList.add("active");
+    }
+
+    function formatTime(seconds) {
+      const minutes = Math.floor(Math.max(seconds, 0) / 60);
+      const restSeconds = Math.max(seconds, 0) % 60;
+
+      return String(minutes).padStart(2, "0") + ":" + String(restSeconds).padStart(2, "0");
+    }
+
+    function initSound() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playSound(type) {
+      if (!audioContext) return;
+
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+
+      const now = audioContext.currentTime;
+
+      if (type === "correct") {
+        oscillator.frequency.setValueAtTime(520, now);
+        oscillator.frequency.setValueAtTime(720, now + 0.12);
+      } else if (type === "wrong") {
+        oscillator.frequency.setValueAtTime(210, now);
+        oscillator.frequency.setValueAtTime(150, now + 0.14);
+      } else {
+        oscillator.frequency.setValueAtTime(430, now);
+      }
+
+      oscillator.type = "sine";
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+
+      oscillator.start(now);
+      oscillator.stop(now + 0.24);
+    }
+
+    function startGame() {
+      initSound();
+
+      clearInterval(totalTimerId);
+      clearInterval(questionTimerId);
+
+      cards = shuffle(ORIGINAL_CARDS);
+      index = 0;
+      score = 0;
+      correct = 0;
+      totalTimeLeft = MAX_TOTAL_TIME;
+
+      $("score").textContent = "0";
+      $("total").textContent = cards.length;
+      $("total-time").textContent = formatTime(totalTimeLeft);
+
+      showScreen("game-screen");
+
+      totalTimerId = setInterval(() => {
+        totalTimeLeft--;
+        $("total-time").textContent = formatTime(totalTimeLeft);
+
+        if (totalTimeLeft <= 0) {
+          finishGame(true);
+        }
+      }, 1000);
+
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      if (index >= cards.length) {
+        finishGame(false);
+        return;
+      }
+
+      clearInterval(questionTimerId);
+
+      answered = false;
+      questionTimeLeft = MAX_QUESTION_TIME;
+
+      const card = cards[index];
+      const shuffledAnswers = shuffle(ANSWERS);
+
+      $("counter").textContent = index + 1;
+      $("topic").textContent = card.topic;
+      $("question-icon").textContent = card.icon;
+      $("question").textContent = card.text;
+
+      $("feedback").className = "feedback";
+      $("feedback").innerHTML = "";
+
+      $("next-btn").classList.remove("show");
+      $("next-btn").textContent =
+        index === cards.length - 1 ? "Узнать результат 🏆" : "Следующий вопрос →";
+
+      $("question-timer").textContent = "⏳ " + questionTimeLeft + " сек.";
+      $("question-timer").classList.remove("danger");
+      $("question-time-bar").style.width = "100%";
+
+      const progress = Math.round((index / cards.length) * 100);
+      $("progress-bar").style.width = progress + "%";
+      $("progress-text").textContent = progress + "%";
+
+      const buttonsBox = $("buttons");
+      buttonsBox.innerHTML = "";
+
+      shuffledAnswers.forEach((answerOption) => {
+        const button = document.createElement("button");
+
+        button.className = "answer-btn";
+        button.dataset.choice = answerOption.name;
+        button.innerHTML =
+          '<span class="answer-icon">' + answerOption.icon + '</span>' +
+          answerOption.name;
+
+        button.addEventListener("click", () => answer(answerOption.name));
+
+        buttonsBox.appendChild(button);
+      });
+
+      questionTimerId = setInterval(() => {
+        questionTimeLeft--;
+
+        $("question-timer").textContent = "⏳ " + Math.max(questionTimeLeft, 0) + " сек.";
+        $("question-time-bar").style.width =
+          Math.max(questionTimeLeft, 0) / MAX_QUESTION_TIME * 100 + "%";
+
+        if (questionTimeLeft <= 8) {
+          $("question-timer").classList.add("danger");
+        }
+
+        if (questionTimeLeft <= 0) {
+          clearInterval(questionTimerId);
+          answer(null, true);
+        }
+      }, 1000);
+    }
+
+    function answer(choice, timedOut = false) {
+      if (answered) return;
+
+      answered = true;
+      clearInterval(questionTimerId);
+
+      const card = cards[index];
+      const buttons = document.querySelectorAll(".answer-btn");
+      const isCorrect = choice === card.answer;
+
+      buttons.forEach((button) => {
+        button.disabled = true;
+
+        if (button.dataset.choice === card.answer) {
+          button.classList.add("correct");
+        }
+
+        if (choice && button.dataset.choice === choice && !isCorrect) {
+          button.classList.add("wrong");
+        }
+      });
+
+      const feedback = $("feedback");
+
+      if (isCorrect) {
+        score += 10;
+        correct++;
+        $("score").textContent = score;
+
+        playSound("correct");
+
+        feedback.className = "feedback show ok";
+        feedback.innerHTML =
+          "<strong>✅ Верно! +10 очков.</strong><br>" +
+          card.explain;
+      } else {
+        playSound("wrong");
+
+        feedback.className = "feedback show bad";
+
+        if (timedOut) {
+          feedback.innerHTML =
+            "<strong>⌛ Время вышло.</strong> Правильный ответ: <b>" +
+            card.answer +
+            "</b>.<br>" +
+            card.explain;
+        } else {
+          feedback.innerHTML =
+            "<strong>❌ Пока неверно.</strong> Правильный ответ: <b>" +
+            card.answer +
+            "</b>.<br>" +
+            card.explain;
+        }
+      }
+
+      $("progress-bar").style.width =
+        Math.round(((index + 1) / cards.length) * 100) + "%";
+
+      $("progress-text").textContent =
+        Math.round(((index + 1) / cards.length) * 100) + "%";
+
+      $("next-btn").classList.add("show");
+    }
+
+    function nextQuestion() {
+      index++;
+      renderQuestion();
+    }
+
+    function finishGame(timeIsOver) {
+      clearInterval(totalTimerId);
+      clearInterval(questionTimerId);
+
+      const usedSeconds = MAX_TOTAL_TIME - Math.max(totalTimeLeft, 0);
+
+      let emoji = "🕵️";
+      let title = "Расследование завершено!";
+      let text = "";
+      let rank = "";
+
+      if (score <= 30) {
+        emoji = "🐣";
+        title = "Начало положено!";
+        rank = "🐣 Звание: Новичок-детектив";
+        text = "Вы уже сделали первые шаги в мире проверки фактов. Внимательно читайте утверждения и ищите точные детали.";
+      } else if (score <= 70) {
+        emoji = "🔍";
+        title = "Хорошая работа!";
+        rank = "🔍 Звание: Детектив-стажёр";
+        text = "Вы умеете замечать неточности и отличать факты от фейков. Ещё немного практики — и расследования будут раскрыты без ошибок.";
+      } else if (score <= 100) {
+        emoji = "🕵️";
+        title = "Отличный результат!";
+        rank = "🕵️ Звание: Опытный детектив";
+        text = "Вы отлично справились с проверкой фактов. Ваше внимание к деталям помогает отличать правду от выдумки.";
+      } else {
+        emoji = "🏆";
+        title = "Идеальное расследование!";
+        rank = "🏆 Звание: Главный детектив";
+        text = "Все улики на месте — вы ответили без ошибок! Настоящий мастер проверки информации.";
+      }
+
+      if (timeIsOver) {
+        text = "Время игры закончилось. " + text;
+      }
+
+      $("result-emoji").textContent = emoji;
+      $("result-title").textContent = title;
+      $("result-text").textContent = text;
+      $("final-score").textContent = score + " / " + (cards.length * 10);
+      $("correct-count").textContent = correct + " / " + cards.length;
+      $("final-time").textContent = formatTime(usedSeconds);
+      $("rank").textContent = rank;
+
+      showScreen("result-screen");
+    }
+  </script>
+</body>
+</html>
